@@ -147,6 +147,42 @@ class NLPMultiStackedCNN(Layer):
             return x
 
 
+class BiLSTM(Layer):
+
+    def __init__(self, units, return_sequence=False, drop_out=None, use_cuda=True, name=None):
+        super().__init__(name)
+        self._return_sequence = return_sequence
+
+        with self._scope():
+            fw_cells = [self._create_cell(u, drop_out, use_cuda) for u in units]
+            bw_cells = [self._create_cell(u, drop_out, use_cuda) for u in units]
+            self._fw_cell = tf.nn.rnn_cell.MultiRNNCell(fw_cells)
+            self._bw_cell = tf.nn.rnn_cell.MultiRNNCell(bw_cells)
+
+    # noinspection PyMethodMayBeStatic
+    def _create_cell(self, unit, drop_out=None, use_cuda=True):
+        if use_cuda:
+            cell = tf.contrib.cudnn_rnn.CudnnCompatibleLSTMCell(unit)
+        else:
+            cell = tf.contrib.rnn.LSTMBlockFusedCell(unit)
+
+        if drop_out is not None:
+            cell = tf.nn.rnn_cell.DropoutWrapper(cell, output_keep_prob=drop_out)
+        return cell
+
+    def __call__(self, x, l):
+        with self._scope():
+            output, state = tf.nn.bidirectional_dynamic_rnn(self._fw_cell, self._bw_cell, x, l, dtype=x.dtype)
+            if self._return_sequence:
+                return output
+            else:
+                output = tf.concat(output, 2)
+                output_rows = tf.range(tf.shape(output)[0])
+                output_cols = l - 1
+                output_last = tf.gather_nd(output, tf.stack([output_rows, output_cols], axis=1))
+                return output_last
+
+
 class Projection(Layer):
 
     def __init__(self, units, activation=None, name=None):
