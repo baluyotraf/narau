@@ -167,7 +167,7 @@ class BiLSTM(Layer):
             cell = tf.contrib.rnn.LSTMBlockFusedCell(unit)
 
         if drop_out is not None:
-            cell = tf.nn.rnn_cell.DropoutWrapper(cell, output_keep_prob=drop_out)
+            cell = tf.nn.rnn_cell.DropoutWrapper(cell, output_keep_prob=(1.0-drop_out))
         return cell
 
     def __call__(self, x, l):
