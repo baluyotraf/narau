@@ -192,11 +192,11 @@ class Projection(Layer):
             raise ValueError()
 
         with self._scope():
-            self._layers = [tf.layers.Dense(u, activation) for u in units]
+            self._layers = [tf.layers.Dense(u, activation) for u in units[:-1]]
+            self._layers.append(tf.layers.Dense(units[-1]))
 
     def __call__(self, x):
         with self._scope():
-            for layer in self._layers[:-1]:
+            for layer in self._layers:
                 x = layer(x)
-            x = self._layers[-1](x)
             return x
