@@ -57,18 +57,13 @@ class EmbeddingTransform(Layer):
         super().__init__(name)
 
         with self._scope():
-            self._layers = [tf.layers.Dense(u, activation) for u in units]
-            self._output_dim = units[-1]
+            self._layers = [tf.keras.layers.TimeDistributed(tf.layers.Dense(u, activation))
+                            for u in units]
 
     def __call__(self, x):
         with self._scope():
-            shape = tf.shape(x)
-            out_dim = x.shape[2]
-
-            x = tf.reshape(x, shape=(-1, out_dim))
             for layer in self._layers:
                 x = layer(x)
-            x = tf.reshape(x, tf.concat([shape[:2], [self._output_dim]], axis=0))
             return x
 
 
@@ -147,7 +142,7 @@ class NLPMultiStackedCNN(Layer):
             return x
 
 
-class BiLSTM(Layer):
+class BidirectionalLSTM(Layer):
 
     def __init__(self, units, return_sequence=False, drop_out=None, use_cuda=True, name=None):
         super().__init__(name)
