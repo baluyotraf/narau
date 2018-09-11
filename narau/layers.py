@@ -3,7 +3,7 @@ from contextlib import contextmanager
 
 
 class Layer:
-    def __init__(self, name):
+    def __init__(self, name=None):
         with tf.variable_scope(name, self.__class__.__name__) as vs:
             self._vs = vs
             self._ns = vs.original_name_scope
@@ -17,38 +17,41 @@ class Layer:
 
 class TokenEmbedding(Layer):
 
-    def __init__(self, token_size, embedding_size, with_pad=True, with_unk=True, weights=None, dtype=tf.float32, name=None):
+    def __init__(self, token_size, dimensions,
+                 dtype=tf.float32, special_token_size=None,
+                 with_pad=None, weights=None, name=None):
         super().__init__(name)
-        self._dtype = dtype
 
         with self._scope():
-            embedding_tensors = []
+            embeddings = self._create_s_tokens(special_token_size,
+                                               dimensions, with_pad, dtype)
+            weights_tensor = tf.get_variable('weights', [token_size, dimensions],
+                                             dtype, trainable=(weights is None))
+            embeddings.append(weights_tensor)
+
+            self._embedding_map = tf.concat(embeddings, axis=0, name='embedding_map')
+            self._weights_tensor = weights_tensor
+            self._weights = weights
+
+    # noinspection PyMethodMayBeStatic
+    def _create_s_tokens(self, s_token_size, dimensions, with_pad, dtype):
+        tensors = []
+        if s_token_size is not None and s_token_size > 0:
             if with_pad:
-                pad = tf.fill([1, embedding_size], 0.0, name='pad')
-                embedding_tensors.append(pad)
-                token_size -= 1
-
-            if with_unk:
-                unk = tf.get_variable('unk', [1, embedding_size], dtype=tf.float32)
-                embedding_tensors.append(unk)
-                token_size -= 1
-
-            embedding_words = self._create_weights(weights, token_size, embedding_size)
-            embedding_tensors.append(embedding_words)
-            embedding_map = tf.concat(embedding_tensors, axis=0)
-            self._embedding = embedding_map
-
-    def _create_weights(self, weights, token_size, embedding_size):
-        if weights is None:
-            return tf.get_variable('weights', [token_size, embedding_size],
-                                   dtype=self._dtype)
-        else:
-            return tf.constant(weights, self._dtype,
-                               [token_size, embedding_size], 'weights', True)
+                tensors.append(tf.fill([1, dimensions], 0.0, name='pad'))
+                s_token_size -= 1
+            s_tokens = tf.get_variable('special_tokens', [s_token_size, dimensions], dtype)
+            tensors.append(s_tokens)
+        return tensors
 
     def __call__(self, tokens):
         with self._scope():
-            return tf.nn.embedding_lookup(self._embedding, tokens)
+            return tf.nn.embedding_lookup(self._embedding_map, tokens)
+
+    def feed_dict_init(self, session):
+        if self._weights is not None:
+            w = self._weights_tensor
+            session.run(w.initializer, {w.initial_value: self._weights})
 
 
 class EmbeddingTransform(Layer):
@@ -195,3 +198,10 @@ class Projection(Layer):
             for layer in self._layers:
                 x = layer(x)
             return x
+
+
+class L2Normalization(Layer):
+
+    def __call__(self, x):
+        with self._scope():
+            return tf.nn.l2_normalize(x, -1)
