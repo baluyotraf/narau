@@ -5,7 +5,8 @@ from . import layers
 class SiameseBiLSTMEmbedding(tf.estimator.Estimator):
 
     def __init__(self, embedding_size, embedding_dims,
-                 embedding_weights, embedding_units,
+                 embedding_weights, embedding_trainable,
+                 embedding_units,
                  lstm_units, lstm_drop_out,
                  projection_units, loss_margin=1.0,
                  learning_rate=0.1, model_dir=None,
@@ -14,7 +15,7 @@ class SiameseBiLSTMEmbedding(tf.estimator.Estimator):
         def model_fn(features, labels, mode):
             emb = layers.TokenEmbedding(embedding_size, embedding_dims,
                                         special_token_size=2, with_pad=True,
-                                        weights=embedding_weights)
+                                        trainable=embedding_trainable)
             embt = layers.EmbeddingTransform(embedding_units, tf.nn.relu)
             lstm = layers.BidirectionalLSTM(lstm_units, drop_out=lstm_drop_out)
             proj = layers.Projection(projection_units, tf.nn.relu)
@@ -44,7 +45,7 @@ class SiameseBiLSTMEmbedding(tf.estimator.Estimator):
                     train_op = optimizer.minimize(loss, tf.train.get_global_step())
 
                 def scaffold_init(scaffold, session):
-                    emb.feed_dict_init(session)
+                    emb.feed_dict_init(session, embedding_weights)
                 scaffold = tf.train.Scaffold(init_fn=scaffold_init)
 
                 return tf.estimator.EstimatorSpec(mode, loss=loss, train_op=train_op,

@@ -19,19 +19,18 @@ class TokenEmbedding(Layer):
 
     def __init__(self, token_size, dimensions,
                  dtype=tf.float32, special_token_size=None,
-                 with_pad=None, weights=None, name=None):
+                 with_pad=None, trainable=True, name=None):
         super().__init__(name)
 
         with self._scope():
             embeddings = self._create_s_tokens(special_token_size,
                                                dimensions, with_pad, dtype)
             weights_tensor = tf.get_variable('weights', [token_size, dimensions],
-                                             dtype, trainable=(weights is None))
+                                             dtype, trainable=trainable)
             embeddings.append(weights_tensor)
 
             self._embedding_map = tf.concat(embeddings, axis=0, name='embedding_map')
             self._weights_tensor = weights_tensor
-            self._weights = weights
 
     # noinspection PyMethodMayBeStatic
     def _create_s_tokens(self, s_token_size, dimensions, with_pad, dtype):
@@ -48,10 +47,10 @@ class TokenEmbedding(Layer):
         with self._scope():
             return tf.nn.embedding_lookup(self._embedding_map, tokens)
 
-    def feed_dict_init(self, session):
-        if self._weights is not None:
-            w = self._weights_tensor
-            session.run(w.initializer, {w.initial_value: self._weights})
+    def feed_dict_init(self, session, weights):
+        if weights is not None:
+            session.run(self._weights_tensor.initializer,
+                        {self._weights_tensor.initial_value: weights})
 
 
 class EmbeddingTransform(Layer):
