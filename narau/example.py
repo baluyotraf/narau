@@ -1,4 +1,5 @@
 import tensorflow as tf
+import os
 
 
 def _is_iterable(iterable):
@@ -77,3 +78,12 @@ def Example(features):
 # noinspection PyPep8Naming
 def SequenceExample(feature_lists, context=None):
     return tf.train.SequenceExample(context=context, feature_lists=feature_lists)
+
+
+def save_example(example, path):
+    parent_dir = os.path.dirname(path)
+    if parent_dir:
+        os.makedirs(parent_dir, exist_ok=True)
+
+    with tf.python_io.TFRecordWriter(path) as writer:
+        writer.write(example.SerializeToString())
