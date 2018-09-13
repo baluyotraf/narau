@@ -5,6 +5,7 @@ from . import layers
 class SiameseBiLSTMEmbedding(tf.estimator.Estimator):
 
     def __init__(self, embedding_size, embedding_dims,
+                 embedding_special_tokens, embedding_with_pad,
                  embedding_weights, embedding_trainable,
                  embedding_units,
                  lstm_units, lstm_drop_out,
@@ -13,9 +14,9 @@ class SiameseBiLSTMEmbedding(tf.estimator.Estimator):
                  config=None, warm_start_from=None):
 
         def model_fn(features, labels, mode):
-            emb = layers.TokenEmbedding(embedding_size, embedding_dims,
-                                        special_token_size=2, with_pad=True,
-                                        trainable=embedding_trainable)
+            emb = layers.TokenEmbedding(embedding_size, embedding_dims, tf.float32,
+                                        embedding_special_tokens, embedding_with_pad,
+                                        embedding_trainable)
             embt = layers.EmbeddingTransform(embedding_units, tf.nn.relu)
             lstm = layers.BidirectionalLSTM(lstm_units, drop_out=lstm_drop_out)
             proj = layers.Projection(projection_units, tf.nn.relu)
