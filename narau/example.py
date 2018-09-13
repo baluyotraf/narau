@@ -1,20 +1,42 @@
 import tensorflow as tf
 
 
+def _is_iterable(iterable):
+    try:
+        iter(iterable)
+        return not isinstance(iterable, str)
+    except TypeError:
+        return False
+
+
+def _as_iterable(value):
+    yield value
+
+
+def _maybe_as_iterable(value):
+    if _is_iterable(value):
+        return value
+    else:
+        return _as_iterable(value)
+
+
 # noinspection PyPep8Naming
 def Int64Feature(value):
+    value = _maybe_as_iterable(value)
     lst = tf.train.Int64List(value=value)
     return tf.train.Feature(int64_list=lst)
 
 
 # noinspection PyPep8Naming
 def BytesFeature(value):
+    value = _maybe_as_iterable(value)
     lst = tf.train.BytesList(value=value)
     return tf.train.Feature(bytes_list=lst)
 
 
 # noinspection PyPep8Naming
 def FloatFeature(value):
+    value = _maybe_as_iterable(value)
     lst = tf.train.FloatList(value=value)
     return tf.train.Feature(float_list=lst)
 
