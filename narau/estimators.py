@@ -18,7 +18,9 @@ class SiameseBiLSTMEmbedding(tf.estimator.Estimator):
                                         embedding_special_tokens, embedding_with_pad,
                                         embedding_trainable)
             embt = layers.EmbeddingTransform(embedding_units, tf.nn.relu)
-            lstm = layers.BidirectionalLSTM(lstm_units, drop_out=lstm_drop_out)
+            lstm = layers.BidirectionalLSTM(lstm_units,
+                                            drop_out=(lstm_drop_out if mode == tf.estimator.ModeKeys.TRAIN
+                                                      else None))
             proj = layers.Projection(projection_units, tf.nn.relu)
             norm = layers.L2Normalization()
 
