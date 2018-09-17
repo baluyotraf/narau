@@ -31,9 +31,8 @@ class SiameseBiLSTMEmbedding(tf.estimator.Estimator):
                 return x
 
             if mode == tf.estimator.ModeKeys.TRAIN or mode == tf.estimator.ModeKeys.EVAL:
-                x1, len1, x2, len2 = features
-                x1 = network(x1, len1)
-                x2 = network(x2, len2)
+                x1 = network(features['x1'], features['len1'])
+                x2 = network(features['x2'], features['len2'])
 
                 with tf.variable_scope('loss'):
                     loss = tf.contrib.losses.metric_learning.contrastive_loss(labels, x1, x2, loss_margin)
@@ -52,8 +51,7 @@ class SiameseBiLSTMEmbedding(tf.estimator.Estimator):
                 return tf.estimator.EstimatorSpec(mode, loss=loss, train_op=train_op,
                                                   scaffold=scaffold)
             else:
-                x_, len_ = features
-                x_ = network(x_, len_)
+                x_ = network(features['x'], features['len'])
                 return tf.estimator.EstimatorSpec(mode, predictions={'embedding': x_})
 
         super().__init__(model_fn, model_dir, config, None, warm_start_from)
