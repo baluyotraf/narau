@@ -170,10 +170,10 @@ class BidirectionalLSTM(Layer):
     def __call__(self, x, l):
         with self._scope():
             output, state = tf.nn.bidirectional_dynamic_rnn(self._fw_cell, self._bw_cell, x, l, dtype=x.dtype)
+            output = tf.concat(output, 2)
             if self._return_sequence:
                 return output
             else:
-                output = tf.concat(output, 2)
                 output_rows = tf.range(tf.shape(output)[0])
                 output_cols = l - 1
                 output_last = tf.gather_nd(output, tf.stack([output_rows, output_cols], axis=1))
