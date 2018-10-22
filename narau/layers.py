@@ -55,11 +55,11 @@ class TokenEmbedding(Layer):
 
 class EmbeddingTransform(Layer):
 
-    def __init__(self, units, activation=None, name=None):
+    def __init__(self, units, activation=None, name=None, trainable=True):
         super().__init__(name)
 
         with self._scope():
-            self._layers = [tf.keras.layers.TimeDistributed(tf.layers.Dense(u, activation))
+            self._layers = [tf.keras.layers.TimeDistributed(tf.layers.Dense(u, activation, trainable=trainable))
                             for u in units]
 
     def __call__(self, x):
