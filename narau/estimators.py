@@ -3,6 +3,25 @@ from . import layers
 
 
 class SiameseBiLSTMEmbedding(tf.estimator.Estimator):
+    """
+    A Siamese Bidirectional LSTM network for sentence similarity
+
+    :param embedding_size: number of embedding tokens
+    :param embedding_dims: dimension of embedding dense representation
+    :param embedding_special_tokens: number of special tokens
+    :param embedding_with_pad: defines if embedding has a padding special token
+    :param embedding_weights: initial weights of the embedding layer
+    :param embedding_trainable: defines if embedding is trainable
+    :param embedding_units: list of the embedding transformation units
+    :param lstm_units: list of the LSTM cell units
+    :param lstm_drop_out: LSTM cell output drop out probability
+    :param projection_units: list units in the projection layer
+    :param loss_margin: target distance of each embedding
+    :param learning_rate: optimization learning rate
+    :param model_dir: directory to save the checkpoints
+    :param config: estimator configuration
+    :param warm_start_from: estimator warm start configuration
+    """
 
     def __init__(self, embedding_size, embedding_dims,
                  embedding_special_tokens, embedding_with_pad,
@@ -60,6 +79,24 @@ class SiameseBiLSTMEmbedding(tf.estimator.Estimator):
 
 
 class BinarySentimentClassifier(tf.estimator.Estimator):
+    """
+    A sentence sentiment classification using binary labels
+
+    :param embedding_size: number of embedding tokens
+    :param embedding_dims: dimension of embedding dense representation
+    :param embedding_special_tokens: number of special tokens
+    :param embedding_with_pad: defines if embedding has a padding special token
+    :param embedding_weights: initial weights of the embedding layer
+    :param embedding_trainable: defines if embedding is trainable
+    :param embedding_units: list of the embedding transformation units
+    :param lstm_units: list of the LSTM cell units
+    :param lstm_drop_out: LSTM cell output drop out probability
+    :param projection_units: list units in the projection layer
+    :param learning_rate: optimization learning rate
+    :param model_dir: directory to save the checkpoints
+    :param config: estimator configuration
+    :param warm_start_from: estimator warm start configuration
+    """
 
     def __init__(self, embedding_size, embedding_dims,
                  embedding_special_tokens, embedding_with_pad,
@@ -69,7 +106,6 @@ class BinarySentimentClassifier(tf.estimator.Estimator):
                  projection_units,
                  learning_rate=0.1, model_dir=None,
                  config=None, warm_start_from=None):
-
         def model_fn(features, labels, mode):
             emb = layers.TokenEmbedding(embedding_size, embedding_dims, tf.float32,
                                         embedding_special_tokens, embedding_with_pad,
