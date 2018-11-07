@@ -21,6 +21,16 @@ class SiameseBiLSTMEmbedding(tf.estimator.Estimator):
     :param model_dir: directory to save the checkpoints
     :param config: estimator configuration
     :param warm_start_from: estimator warm start configuration
+
+    Training/Development Features:
+        x1: Sentence 1
+        len1: Length of sentence 1
+        x2: Sentence 2
+        len2: Length of sentence 2
+
+    Prediction Features:
+        x: Sentence for embedding
+        len: Length of sentence to embed
     """
 
     def __init__(self, embedding_size, embedding_dims,
@@ -96,6 +106,10 @@ class BinarySentimentClassifier(tf.estimator.Estimator):
     :param model_dir: directory to save the checkpoints
     :param config: estimator configuration
     :param warm_start_from: estimator warm start configuration
+
+    Training/Development/Prediction Features:
+        x: Sentence to get the sentiment
+        len: Length of sentence to get the sentiment
     """
 
     def __init__(self, embedding_size, embedding_dims,
